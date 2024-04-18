@@ -1,0 +1,149 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+//CRIANDO AS TABELAS E RELACIONAMENTOS NO BANCO DE DADOS.
+
+model User_Company {
+  id Int @id @default(autoincrement())
+  full_name String @db.VarChar(50)
+  company_store String @db.VarChar(100)
+  email String @unique @db.VarChar(255)
+  phone String? @db.VarChar(11)
+  password String @db.VarChar(8)
+
+  //controle de criação e alteração de dados.
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  //array contendo todos os clientes da empresa.
+  clients Client[] 
+
+  //array contendo todos os projetos da empresa.
+  projects Project[]
+
+  //nome da tabela no banco de dados.
+  @@map("users_company")
+}
+
+model Client {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(50)
+  phone String @db.VarChar(11)
+  city String @db.VarChar(100)
+  estate String @db.VarChar(2)
+
+  //controle de criação e alteração de dados.
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  //relacionamento com a empresa.
+  user_company_id Int
+  user_company User_Company @relation(fields: [user_company_id], references: [id]) 
+
+  //array contendo todos os projetos do cliente.
+  projects Project[]
+
+  //nome da tabela no banco de dados.
+  @@map("clients")
+}
+
+model Project {
+  id Int @id @default(autoincrement())
+  title String @db.VarChar(50)
+  description String? @db.VarChar(255)
+  initial_date DateTime?
+  finished_date DateTime?
+  budget Float
+  status String @db.VarChar(1)
+
+  //controle de criação e alteração de dados.
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  //relacionamento com a empresa.
+  user_company_id Int
+  user_company User_Company @relation(fields: [user_company_id], references: [id])
+
+  //relacionamento com o cliente.
+  client_id Int
+  client Client @relation(fields: [client_id], references: [id])
+
+  //relacionamento com o carro/veiculo.
+  car_id Int
+  car Car @relation(fields: [car_id], references: [id])
+
+  //array contendo todas as entradas do projeto.
+  entry_transactions Entry_Transaction[]
+
+  //array contendo todas as saidas do projeto.
+  exit_transactions Exit_Transaction[]
+
+  //nome da tabela no banco de dados.
+  @@map("projects")
+}
+
+model Car {
+  id Int @id @default(autoincrement())
+  brand String @db.VarChar(50)
+  model String @db.VarChar(50)
+  plate String @db.VarChar(7)
+  year String? @db.VarChar(4)
+
+  //controle de criação e alteração de dados.
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  //array contendo todos os projetos de um carro.
+  projects Project[]
+
+  //nome da tabela no banco de dados.
+  @@map("cars")
+}
+
+model Entry_Transaction {
+  id Int @id @default(autoincrement())
+  value Float
+  date DateTime
+  description String @db.VarChar(100)
+  type_payment String @db.VarChar(25)
+
+  //relacionamento com o projeto.
+  project_id Int
+  project Project @relation(fields: [project_id], references: [id])
+
+  //controle de criação e alteração de dados.
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  //nome da tabela no banco de dados.
+  @@map("entry_transactions")
+}
+
+model Exit_Transaction {
+  id Int @id @default(autoincrement())
+  value Float
+  date DateTime
+  description String @db.VarChar(100)
+  category String @db.VarChar(50)
+  recipient String @db.VarChar(50)
+
+  //relacionamento como projeto.
+  project_id Int
+  project Project @relation(fields: [project_id], references: [id])
+
+  //controle de criação e alteração de dados.
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  //nome da tabela no banco de dados.
+  @@map("exit_transactions")
+}
+
