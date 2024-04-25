@@ -68,7 +68,7 @@ class User_Company {
 
              //garantir que o email para atualizar seja novo ou o mesmo do usuario atual.
              let user_att = await prisma.user_Company.findUnique({where: {email}})
-             if (user_att && user_att.id !== id){
+             if (user_att && user_att.id !== current_user.id){
                  return res.status(400).json({error: "Email já cadastrado no App."})
              }             
              
