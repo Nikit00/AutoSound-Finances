@@ -53,7 +53,7 @@ class User_Company {
              })
              
             if (!current_user){
-                return res.status(400).json({error: "Usuario não encontrado."})
+                return res.status(404).json({error: "Usuario não encontrado."})
              }
 
             //garantir que a senha contenha 8 caracteres.
@@ -87,6 +87,54 @@ class User_Company {
              //resposta de sucesso da API.
              return res.status(201).json({message: "Usuario atualizado com sucesso."})
             
+        } catch (error) {
+            return res.status(400).json({message: error.message})
+            
+        }
+    }
+
+    static async newClient (req, res){
+        try {
+            
+            const {name, phone, city, estate} = req.body
+            const {user_company_id} = req.params
+
+            //verificando se o usuario existe.
+            let user = await prisma.user_Company.findUnique({
+                where: {id: Number(user_company_id)}
+            })
+
+            if (!user){
+                return res.status(404).json({error: "Usuario não encontrado."})
+            }
+
+            //verificando se existe o telefone cadastrado para outro cliente do mesmo usuario.
+            let client = await prisma.client.findFirst({
+                where: {
+                    phone,
+                    user_company_id: user.id
+                },  
+            })
+
+            //Se existe o numero de telefone cadastrado para um cliente do mesmo usuario, nao precisa cadastrar novamente o cliente.
+            if (client){
+                return res.status(400).json({error: "Numero de telefone já cadastrado para outro cliente da Empresa.."})
+            }
+
+            //criando o novo cliente para o usuario.
+            let new_client = await prisma.client.create({
+                data: {
+                    name,
+                    phone,
+                    city,
+                    estate,
+                    user_company_id: user.id
+                }
+            })
+
+            //resposta de OK da API.
+            return res.status(201).json({message: "Cliente criado com sucesso."})
+
         } catch (error) {
             return res.status(400).json({message: error.message})
             
