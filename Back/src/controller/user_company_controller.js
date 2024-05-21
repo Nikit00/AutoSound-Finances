@@ -118,7 +118,7 @@ class User_Company {
 
             //Se existe o numero de telefone cadastrado para um cliente do mesmo usuario, nao precisa cadastrar novamente o cliente.
             if (client){
-                return res.status(400).json({error: "Numero de telefone já cadastrado para outro cliente da Empresa.."})
+                return res.status(400).json({error: "Numero de telefone já cadastrado para outro cliente da Empresa..."})
             }
 
             //criando o novo cliente para o usuario.
@@ -135,6 +135,46 @@ class User_Company {
             //resposta de OK da API.
             return res.status(201).json({message: "Cliente criado com sucesso."})
 
+        } catch (error) {
+            return res.status(400).json({message: error.message})
+            
+        }
+    }
+
+    static async editClient (req, res){
+        try {
+
+            const {user_company_id, id} = req.params;
+            const {name, phone, city, estate} = req.body;
+
+            let client_att = await prisma.client.findUnique({
+                where: {id: Number(id)}})
+
+            if(!client_att){
+                return res.status(404).json({error: "Cliente não encontrado."})
+            }
+
+           let client = await prisma.client.findFirst({
+            where: {
+                phone: phone,
+                user_company_id: Number(user_company_id)
+            }})
+
+            if(client.id !== client_att.id){
+                return res.status(400).json({error: "Numero de telefone já cadastrado para outro cliente da Empresa..."})
+            }
+
+            client_att = await prisma.client.update({
+                where: {id: Number(id)},
+                data: {
+                    name: name !== client_att.name ? name : undefined,
+                    phone: phone !== client_att.phone ? phone : undefined,
+                    city: city !== client_att.city ? city : undefined,
+                    estate: estate !== client_att.estate ? estate : undefined
+                }
+            })
+
+            return res.status(201).json({message: "Cliente Atualizado com Sucesso."})
         } catch (error) {
             return res.status(400).json({message: error.message})
             
